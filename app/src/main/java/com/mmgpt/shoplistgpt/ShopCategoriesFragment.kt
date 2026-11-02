@@ -38,26 +38,31 @@ class ShopCategoriesFragment : Fragment() {
 
         val gestureDetector = GestureDetectorCompat(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                // Convert raw screen coordinates to RecyclerView's coordinate system
-                val location = IntArray(2)
-                binding.recyclerView.getLocationOnScreen(location)
-                val x = e.rawX - location[0]
-                val y = e.rawY - location[1]
-                val child = binding.recyclerView.findChildViewUnder(x, y)
-                val position = child?.let { binding.recyclerView.getChildAdapterPosition(it) } ?: RecyclerView.NO_POSITION
-                if (position != RecyclerView.NO_POSITION) {
-                    val viewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
-                    viewPager.currentItem = position
-                    return true
+                val child = binding.recyclerView.findChildViewUnder(e.x, e.y)
+                if (child != null) {
+                    val position = binding.recyclerView.getChildAdapterPosition(child)
+                    if (position != RecyclerView.NO_POSITION) {
+                        val targetPage = CategoryNavigationHelper.getShopModeTargetPage(
+                            position = position,
+                            itemCount = adapter.itemCount
+                        )
+                        if (targetPage != null) {
+                            val viewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
+                            viewPager.currentItem = targetPage
+                            return true
+                        }
+                    }
                 }
                 return super.onDoubleTap(e)
             }
         })
 
-        binding.recyclerView.setOnTouchListener { _, event ->
-            gestureDetector.onTouchEvent(event)
-            false
-        }
+        binding.recyclerView.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                gestureDetector.onTouchEvent(e)
+                return false
+            }
+        })
 
         viewModel.categories.observe(viewLifecycleOwner) { list ->
             binding.tvHeading.text = getString(R.string.summary_heading)

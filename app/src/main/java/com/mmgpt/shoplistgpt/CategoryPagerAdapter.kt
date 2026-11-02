@@ -4,9 +4,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
-import com.mmgpt.shoplistgpt.PlanCategoryFragment
-import com.mmgpt.shoplistgpt.PlanCategoriesFragment
-
 class CategoryPagerAdapter(
     activity: FragmentActivity,
     private val viewModel: ShoppingListViewModel,
@@ -20,14 +17,14 @@ class CategoryPagerAdapter(
             if (position == 0) {
                 PlanCategoriesFragment()
             } else {
-                PlanCategoryFragment.newInstance(position - 1)
+                CategoryFragment.newInstance(position - 1, isPlanMode = true)
             }
         } else {
             val size = viewModel.categories.value?.size ?: 0
             if (position == size) {
                 ShopCategoriesFragment()
             } else {
-                CategoryFragment.newInstance(position)
+                CategoryFragment.newInstance(position, isPlanMode = false)
             }
         }
 }

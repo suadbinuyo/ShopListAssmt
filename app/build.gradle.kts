@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
 plugins {
-    id("com.android.application")
-    kotlin("android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -36,6 +36,10 @@ android {
             )
         }
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 // <— this forces all Kotlin compilations to target 1.8 bytecode
@@ -46,7 +50,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
     implementation("androidx.core:core-ktx:1.10.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.8.0")
@@ -60,4 +64,8 @@ dependencies {
     implementation("org.apache.poi:poi-ooxml:5.2.3")
     implementation(libs.androidx.ui.graphics.android)
     implementation(libs.androidx.foundation.android)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }

@@ -81,24 +81,42 @@ class PlanCategoriesFragment : Fragment() {
         val gestureDetector = GestureDetectorCompat(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 val child = binding.recyclerView.findChildViewUnder(e.x, e.y)
-                val position = child?.let { binding.recyclerView.getChildAdapterPosition(it) } ?: RecyclerView.NO_POSITION
-                if (position != RecyclerView.NO_POSITION) {
-                    val item = adapter.currentList.getOrNull(position)
-                    if (item?.isHeading == true) {
-                        val index = position - 1
-                        val viewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
-                        viewPager.currentItem = index + 1
-                        return true
+                if (child != null) {
+                    val position = binding.recyclerView.getChildAdapterPosition(child)
+                    if (position != RecyclerView.NO_POSITION) {
+                        val item = adapter.currentList.getOrNull(position)
+                        val childX = e.x - child.left
+                        val childY = e.y - child.top
+                        val editBtn = child.findViewById<View>(R.id.btnEdit)
+                        val deleteBtn = child.findViewById<View>(R.id.btnDelete)
+                        val dragHandle = child.findViewById<View>(R.id.dragHandle)
+
+                        val hitButton = isViewHit(editBtn, childX, childY) ||
+                                       isViewHit(deleteBtn, childX, childY) ||
+                                       isViewHit(dragHandle, childX, childY)
+
+                        val targetPage = CategoryNavigationHelper.getPlanModeTargetPage(
+                            position = position,
+                            isHeading = item?.isHeading == true,
+                            isActionButtonHit = hitButton
+                        )
+                        if (targetPage != null) {
+                            val viewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
+                            viewPager.currentItem = targetPage
+                            return true
+                        }
                     }
                 }
                 return super.onDoubleTap(e)
             }
         })
 
-        binding.recyclerView.setOnTouchListener { _, event ->
-            gestureDetector.onTouchEvent(event)
-            false
-        }
+        binding.recyclerView.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                gestureDetector.onTouchEvent(e)
+                return false
+            }
+        })
 
         binding.btnClearAll.visibility = View.VISIBLE
         binding.btnClearAll.setOnClickListener {
@@ -124,6 +142,11 @@ class PlanCategoriesFragment : Fragment() {
         }
     }
 
+    private fun isViewHit(view: View?, x: Float, y: Float): Boolean {
+        if (view == null || view.visibility != View.VISIBLE) return false
+        return x >= view.left && x <= view.right && y >= view.top && y <= view.bottom
+    }
+
     private fun showEditDialog(index: Int, current: String) {
         val input = android.widget.EditText(requireContext()).apply { setText(current) }
         AlertDialog.Builder(requireContext())
@@ -144,4 +167,3 @@ class PlanCategoriesFragment : Fragment() {
         _binding = null
     }
 }
-
